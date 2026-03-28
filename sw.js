@@ -1,5 +1,5 @@
 // 【關鍵升級】定義緩存名稱和資料請求網址
-const CACHE_NAME = 'simon-cards-cache-v5';
+const CACHE_NAME = 'simon-cards-cache-v6';
 const DATA_CACHE_NAME = 'simon-cards-data-cache-v1';
 const GOOGLE_APP_URL = "https://script.google.com/macros/s/AKfycbxfQDtnAqYvOx7b8S7RL4rLrvjVVDRsIcLouv_VBjmCfHeSZSSendcEb0KGZpVLiWd1/exec"; // 如果需要特定處理，可以將它加入例外，但這裡不需。
 
