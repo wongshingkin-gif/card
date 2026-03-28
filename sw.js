@@ -1,7 +1,7 @@
 // 【關鍵升級】定義緩存名稱和資料請求網址
-const CACHE_NAME = 'simon-cards-cache-v3';
+const CACHE_NAME = 'simon-cards-cache-v4';
 const DATA_CACHE_NAME = 'simon-cards-data-cache-v1';
-const GOOGLE_APP_URL = "https://script.google.com/macros/s/AKfycbxMrA_E93FOuepQnDn4Xvg8-xIdbC3-2Womrmd5LwSg3G2fOV8On9OqlQF6cCEDNXRZDQ/exec"; // 如果需要特定處理，可以將它加入例外，但這裡不需。
+const GOOGLE_APP_URL = "https://script.google.com/macros/s/AKfycbxfQDtnAqYvOx7b8S7RL4rLrvjVVDRsIcLouv_VBjmCfHeSZSSendcEb0KGZpVLiWd1/exec"; // 如果需要特定處理，可以將它加入例外，但這裡不需。
 
 // 定義要緩存的關鍵靜態資源
 const STATIC_FILES = [
