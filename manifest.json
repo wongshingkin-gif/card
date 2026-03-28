@@ -1,7 +1,7 @@
 {
   "name": "Simon's Cloud Card Book",
   "short_name": "Simon Cards",
-  "start_url": "./cards.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3498db",
