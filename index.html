@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simon's Cloud Card Book</title>
+    <title>Simon's Card Book</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="card.png"> <meta name="theme-color" content="#3498db">
     
@@ -18,13 +18,16 @@
         .tab-btn:hover:not(.active) { background: #dfe6e9; }
 
         /* 頁面區塊 */
-        .page-section { display: none; /* 預設隱藏，由 JS 控制顯示 */ }
-        .page-section.active { display: block; /* 顯示作用中的區塊 */ }
+        .page-section { display: none; }
+        .page-section.active { display: block; }
 
         .form-section, .search-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        
+        /* 搜尋區塊排版優化 */
+        .search-controls { display: flex; flex-direction: column; gap: 10px; }
+
         input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
         
-        /* 新增分類區域的排版 */
         .category-wrapper { display: flex; gap: 10px; align-items: center; }
         .category-wrapper select { flex: 1; margin: 0; }
         .btn-add-cat { width: auto; margin: 0; padding: 12px 15px; background-color: #2ecc71; white-space: nowrap; color: white;}
@@ -71,7 +74,12 @@
 
     <div id="page-list" class="page-section">
         <div class="search-section">
-            <input type="text" id="searchInput" placeholder="🔍 搜尋姓名、公司或分類..." onkeyup="filterCards()">
+            <div class="search-controls">
+                <input type="text" id="searchInput" placeholder="🔍 搜尋姓名或公司..." onkeyup="filterCards()">
+                <select id="searchCategoryInput" onchange="filterCards()">
+                    <option value="all">📁 所有分類 (顯示全部)</option>
+                    </select>
+            </div>
         </div>
 
         <div id="cardList">
@@ -93,22 +101,19 @@
         // 🔘 切換頁面的功能
         function switchPage(page) {
             if (page === 'add') {
-                // 顯示新增頁面，隱藏名片庫
                 document.getElementById('page-add').classList.add('active');
                 document.getElementById('page-list').classList.remove('active');
-                // 切換按鈕樣式
                 document.getElementById('btn-tab-add').classList.add('active');
                 document.getElementById('btn-tab-list').classList.remove('active');
             } else if (page === 'list') {
-                // 顯示名片庫，隱藏新增頁面
                 document.getElementById('page-list').classList.add('active');
                 document.getElementById('page-add').classList.remove('active');
-                // 切換按鈕樣式
                 document.getElementById('btn-tab-list').classList.add('active');
                 document.getElementById('btn-tab-add').classList.remove('active');
                 
-                // 每次切換到名片庫時，清空搜尋框並顯示全部名片
+                // 切換到名片庫時，重置搜尋並顯示全部
                 document.getElementById('searchInput').value = '';
+                document.getElementById('searchCategoryInput').value = 'all';
                 displayCards(cloudCards);
             }
         }
@@ -119,6 +124,7 @@
             }
         }
 
+        // 📥 抓取雲端資料 (加入防護機制)
         function fetchDataFromGoogle() {
             const cardListDiv = document.getElementById('cardList');
             cardListDiv.innerHTML = '<div class="loading">🔄 正在同步雲端資料...</div>';
@@ -126,20 +132,39 @@
             fetch(GOOGLE_APP_URL)
                 .then(response => response.json())
                 .then(data => {
-                    cloudCards = data.cards.reverse(); 
-                    displayCards(cloudCards); 
-                    updateCategoryDropdown(data.categories);
+                    // 【防呆機制】：檢查 Google Apps Script 是否回傳了正確的新格式
+                    if (data && data.cards && data.categories) {
+                        cloudCards = data.cards.reverse(); 
+                        displayCards(cloudCards); 
+                        updateCategoryDropdown(data.categories);
+                    } else if (Array.isArray(data)) {
+                        // 如果回傳的是舊陣列格式，代表雲端程式碼沒有更新版本！
+                        cloudCards = data.reverse();
+                        displayCards(cloudCards);
+                        alert("⚠️ 錯誤：您的 Google Apps Script 仍是舊版！請回到 Google 試算表，進入 Apps Script 點擊『部署 > 管理部署作業 > 編輯 > 建立新版本』！");
+                    } else {
+                        cardListDiv.innerHTML = '<p style="text-align:center; color:red;">❌ 雲端資料格式錯誤，無法載入。</p>';
+                    }
                 })
                 .catch(error => {
                     cardListDiv.innerHTML = '<p style="text-align:center; color:red;">❌ 無法連線至雲端，請檢查網路。</p>';
                 });
         }
 
+        // 🔄 同步更新兩個頁面的「分類選單」
         function updateCategoryDropdown(categories) {
-            const select = document.getElementById('categoryInput');
-            select.innerHTML = ''; 
+            // 1. 更新「新增名片頁面」的選單
+            const selectAdd = document.getElementById('categoryInput');
+            selectAdd.innerHTML = ''; 
             categories.forEach(cat => {
-                select.innerHTML += `<option value="${cat}">${cat}</option>`;
+                selectAdd.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+
+            // 2. 更新「搜尋頁面」的分類選單
+            const selectSearch = document.getElementById('searchCategoryInput');
+            selectSearch.innerHTML = '<option value="all">📁 所有分類 (顯示全部)</option>';
+            categories.forEach(cat => {
+                selectSearch.innerHTML += `<option value="${cat}">${cat}</option>`;
             });
         }
 
@@ -205,7 +230,6 @@
             .then(response => response.json())
             .then(data => {
                 alert('✅ 成功儲存名片至雲端！');
-                // 清空輸入框
                 document.getElementById('nameInput').value = '';
                 document.getElementById('companyInput').value = '';
                 document.getElementById('photoInput').value = '';
@@ -214,10 +238,7 @@
                 btn.innerText = "💾 儲存名片並上傳";
                 btn.disabled = false;
                 
-                // 重新下載最新資料
                 fetchDataFromGoogle(); 
-                
-                // ✨ 貼心設計：上傳成功後，自動幫使用者切換到「名片庫」頁面查看結果
                 switchPage('list');
             })
             .catch(error => {
@@ -228,13 +249,23 @@
             });
         }
 
+        // 🔍 多重過濾功能：同時比對「關鍵字」與「所選分類」
         function filterCards() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
-            const filteredCards = cloudCards.filter(card => 
-                card.name.toLowerCase().includes(keyword) || 
-                card.company.toLowerCase().includes(keyword) ||
-                card.category.toLowerCase().includes(keyword) 
-            );
+            const selectedCat = document.getElementById('searchCategoryInput').value;
+
+            const filteredCards = cloudCards.filter(card => {
+                // 條件 1：文字搜尋 (包含姓名、公司)
+                const textMatch = card.name.toLowerCase().includes(keyword) || 
+                                  card.company.toLowerCase().includes(keyword);
+                
+                // 條件 2：分類搜尋 (如果是 'all' 就代表全都符合，否則要完全一樣)
+                const catMatch = (selectedCat === 'all') || (card.category === selectedCat);
+
+                // 必須同時符合兩個條件才顯示
+                return textMatch && catMatch;
+            });
+            
             displayCards(filteredCards);
         }
 
@@ -243,7 +274,7 @@
             cardListDiv.innerHTML = ''; 
 
             if (cardsToDisplay.length === 0) {
-                cardListDiv.innerHTML = '<p style="text-align:center; color:#999;">目前沒有相符的名片。</p>';
+                cardListDiv.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">目前沒有相符的名片。</p>';
                 return;
             }
 
