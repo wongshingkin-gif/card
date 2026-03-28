@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simon's Card Book</title>
+    
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href=card.png"> <meta name="theme-color" content="#3498db">
+    <link rel="apple-touch-icon" href="card.png"> <meta name="theme-color" content="#3498db">
     
     <style>
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background-color: #f4f7f6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
         h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
         
         .tabs { display: flex; margin-bottom: 20px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .tab-btn { flex: 1; text-align: center; padding: 15px; background: #ecf0f1; cursor: pointer; font-weight: bold; color: #7f8c8d; transition: 0.3s; border: none; font-size: 16px; }
+        .tab-btn { flex: 1; text-align: center; padding: 15px; background: #ecf0f1; cursor: pointer; font-weight: bold; color: #7f8c8d; transition: 0.3s; border: none; font-size: 16px; outline: none; }
         .tab-btn.active { background: #3498db; color: white; }
         
         .page-section { display: none; }
@@ -20,7 +21,7 @@
         
         .form-section, .search-section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
         
-        /* 📸 新增：名片預覽拍攝框 */
+        /* 名片預覽拍攝框 */
         .photo-box { 
             width: 100%; height: 200px; border: 2px dashed #bdc3c7; border-radius: 8px; 
             display: flex; align-items: center; justify-content: center; 
@@ -28,7 +29,6 @@
         }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; display: none; }
         .photo-box span { color: #7f8c8d; font-weight: bold; font-size: 16px; position: absolute; }
-        /* 隱藏原本醜醜的上傳按鈕 */
         #photoInput { display: none; }
 
         input[type="text"], select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
@@ -42,7 +42,8 @@
         .card-item { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 15px; display: flex; gap: 15px; align-items: center; }
         .card-image { width: 100px; height: 70px; object-fit: cover; border-radius: 5px; border: 1px solid #eee; }
         .card-icon { width: 100px; height: 70px; background-color: #ecf0f1; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #bdc3c7;}
-        .card-info h3 { margin: 0 0 5px 0; font-size: 18px; color: #2c3e50;}
+        .card-info h3 { margin: 0 0 5px 0; font-size: 18px; color: #2c3e50; display: flex; align-items: center; flex-wrap: wrap;}
+        .card-info .position-badge { font-size: 13px; color: #e67e22; background: #fdf2e9; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: normal; }
         .card-info p { margin: 2px 0; font-size: 14px; color: #7f8c8d; }
         .tag { display: inline-block; background: #e8f8f5; color: #16a085; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-top: 5px; }
         .loading { text-align: center; color: #3498db; font-weight: bold; padding: 20px; }
@@ -68,8 +69,7 @@
 
             <input type="text" id="nameInput" placeholder="姓名 (必填)">
             <input type="text" id="companyInput" placeholder="公司名稱">
-            
-            <div class="category-wrapper">
+            <input type="text" id="positionInput" placeholder="職位 (選填)"> <div class="category-wrapper">
                 <select id="categoryInput">
                     <option value="未分類">載入分類中...</option>
                 </select>
@@ -82,7 +82,7 @@
 
     <div id="page-list" class="page-section">
         <div class="search-section">
-            <input type="text" id="searchInput" placeholder="🔍 搜尋姓名或公司..." onkeyup="filterCards()">
+            <input type="text" id="searchInput" placeholder="🔍 搜尋姓名、公司或職位..." onkeyup="filterCards()">
             <select id="searchCategoryInput" onchange="filterCards()">
                 <option value="all">📁 所有分類 (顯示全部)</option>
             </select>
@@ -95,10 +95,10 @@
 
     <script>
         // 👇👇👇 替換成你的 Google Apps Script 網址 👇👇👇
-        const GOOGLE_APP_URL = "https://script.google.com/macros/s/AKfycbxMrA_E93FOuepQnDn4Xvg8-xIdbC3-2Womrmd5LwSg3G2fOV8On9OqlQF6cCEDNXRZDQ/exec";
+        const GOOGLE_APP_URL = "https://script.google.com/macros/s/AKfycbxfQDtnAqYvOx7b8S7RL4rLrvjVVDRsIcLouv_VBjmCfHeSZSSendcEb0KGZpVLiWd1/exec";
 
         let cloudCards = []; 
-        let compressedPhotoBase64 = ""; // 存放壓縮後的圖片代碼
+        let compressedPhotoBase64 = ""; 
 
         window.onload = function() {
             fetchDataFromGoogle();
@@ -121,7 +121,7 @@
             }
         }
 
-        // 🖼️ 圖片壓縮與預覽引擎
+        // 圖片壓縮引擎
         document.getElementById('photoInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -132,9 +132,8 @@
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    // 建立一個隱藏的畫布來縮小照片
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800; // 限制最大寬度，大大減少體積
+                    const MAX_WIDTH = 800; 
                     let width = img.width;
                     let height = img.height;
 
@@ -148,10 +147,8 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // 將壓縮後的照片轉回 Base64 (0.7 代表 70% 的畫質)
                     compressedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
 
-                    // 將照片顯示在畫面上的預覽框中
                     document.getElementById('imagePreview').src = compressedPhotoBase64;
                     document.getElementById('imagePreview').style.display = 'block';
                     document.getElementById('photoPlaceholder').style.display = 'none';
@@ -194,13 +191,24 @@
             const newCat = prompt("請輸入新的分類名稱：");
             if (!newCat || newCat.trim() === "") return;
             const payload = { action: "addCategory", categoryName: newCat.trim() };
+            
+            const btn = document.querySelector('.btn-add-cat');
+            btn.innerText = "⏳...";
+            btn.disabled = true;
+
             fetch(GOOGLE_APP_URL, { method: 'POST', body: JSON.stringify(payload) })
-            .then(() => fetchDataFromGoogle());
+            .then(() => {
+                alert(`✅ 成功新增分類：「${newCat}」`);
+                btn.innerText = "+ 新增分類";
+                btn.disabled = false;
+                fetchDataFromGoogle();
+            });
         }
 
         function processAndUpload() {
             const name = document.getElementById('nameInput').value.trim();
             const company = document.getElementById('companyInput').value.trim();
+            const position = document.getElementById('positionInput').value.trim(); // 🆕 取得職位資料
             const category = document.getElementById('categoryInput').value;
             const btn = document.getElementById('saveBtn');
 
@@ -209,8 +217,8 @@
             btn.innerText = "⏳ 圖片與資料上傳中...";
             btn.disabled = true;
 
-            // 傳送壓縮後的照片
-            const payload = { action: "addCard", name: name, company: company, category: category, photo: compressedPhotoBase64 };
+            // 🆕 傳送資料時包含 position
+            const payload = { action: "addCard", name: name, company: company, position: position, category: category, photo: compressedPhotoBase64 };
 
             fetch(GOOGLE_APP_URL, {
                 method: 'POST',
@@ -219,13 +227,13 @@
             .then(response => response.json())
             .then(data => {
                 alert('✅ 成功儲存名片！');
-                // 清空表單
+                
                 document.getElementById('nameInput').value = '';
                 document.getElementById('companyInput').value = '';
+                document.getElementById('positionInput').value = ''; // 🆕 清空職位欄位
                 document.getElementById('photoInput').value = '';
-                compressedPhotoBase64 = ""; // 清除暫存
+                compressedPhotoBase64 = ""; 
                 
-                // 恢復預覽框
                 document.getElementById('imagePreview').style.display = 'none';
                 document.getElementById('imagePreview').src = '';
                 document.getElementById('photoPlaceholder').style.display = 'block';
@@ -239,11 +247,17 @@
             });
         }
 
+        // 🆕 更新搜尋過濾邏輯：現在連「職位」都可以搜了！
         function filterCards() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             const selectedCat = document.getElementById('searchCategoryInput').value;
+            
             const filteredCards = cloudCards.filter(card => {
-                const textMatch = card.name.toLowerCase().includes(keyword) || card.company.toLowerCase().includes(keyword);
+                // 比對姓名、公司、職位 (要先確保職位不是空的再比對)
+                const textMatch = card.name.toLowerCase().includes(keyword) || 
+                                  card.company.toLowerCase().includes(keyword) || 
+                                  (card.position && card.position.toLowerCase().includes(keyword));
+                                  
                 const catMatch = (selectedCat === 'all') || (card.category === selectedCat);
                 return textMatch && catMatch;
             });
@@ -258,16 +272,18 @@
                 return;
             }
             cardsToDisplay.forEach(card => {
-                // 如果有圖片連結，就顯示圖片；沒有就顯示圖示
                 let imageElement = card.imageUrl 
                     ? `<img src="${card.imageUrl}" class="card-image" alt="名片">`
                     : `<div class="card-icon">👤</div>`;
+
+                // 🆕 如果有職位，就顯示一個漂亮的職位小標籤，緊跟在名字旁邊
+                let positionHTML = card.position ? `<span class="position-badge">${card.position}</span>` : '';
 
                 cardListDiv.innerHTML += `
                     <div class="card-item">
                         ${imageElement}
                         <div class="card-info">
-                            <h3>${card.name}</h3>
+                            <h3>${card.name} ${positionHTML}</h3>
                             <p>🏢 ${card.company || '無公司資訊'}</p>
                             <span class="tag">${card.category}</span>
                         </div>
