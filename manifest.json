@@ -8,12 +8,12 @@
   "description": "跨裝置同步的雲端名片簿應用程式。",
   "icons": [
     {
-      "src": "your-image-url.png",
+      "src": "card.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "your-image-url.png",
+      "src": "card.png",
       "sizes": "512x512",
       "type": "image/png"
     }
