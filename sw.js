@@ -1,14 +1,14 @@
 // 【關鍵升級】定義緩存名稱和資料請求網址
 const CACHE_NAME = 'simon-cards-cache-v2';
 const DATA_CACHE_NAME = 'simon-cards-data-cache-v1';
-const GOOGLE_APP_URL = "your-gas-web-app-url-here"; // 如果需要特定處理，可以將它加入例外，但這裡不需。
+const GOOGLE_APP_URL = "https://script.google.com/macros/s/AKfycbwo6VRutCS5JFs-bPeX447fneFMf_POyAnGPmqiHzn2l2lqXGx89YpMwUfkgUzEDx8HWA/exec"; // 如果需要特定處理，可以將它加入例外，但這裡不需。
 
 // 定義要緩存的關鍵靜態資源
 const STATIC_FILES = [
   './cards.html',
   './manifest.json',
   './sw.js',
-  'your-image-url.png' // 將圖示圖片也加入緩存，確保離線時圖示可見
+  'card.png' // 將圖示圖片也加入緩存，確保離線時圖示可見
 ];
 
 // install 事件：在 Service Worker 註冊時緩存靜態檔案
